@@ -32,6 +32,10 @@ class SettingsStore: ObservableObject {
     @Published var customNumbers:   String = "0123456789"                       { didSet { save("customNumbers",   customNumbers)   } }
     @Published var customSymbols:   String = "!@#$%^&*()-_=+[]{}|;:',.<>?/~"  { didSet { save("customSymbols",   customSymbols)   } }
 
+    // Default: ⇧⌘7  (keyCode 26, modifiers = .command | .shift)
+    @Published var hotKeyCode: Int      = 26        { didSet { save("hotKeyCode",      hotKeyCode)      } }
+    @Published var hotKeyModifiers: Int = 1_179_648 { didSet { save("hotKeyModifiers", hotKeyModifiers) } }
+
     @Published var passwordHistory: [String] = [] {
         didSet {
             if let data = try? JSONEncoder().encode(passwordHistory) {
@@ -52,6 +56,8 @@ class SettingsStore: ObservableObject {
         if let v = d.string(forKey: "customLowercase")               { customLowercase    = v }
         if let v = d.string(forKey: "customNumbers")                 { customNumbers      = v }
         if let v = d.string(forKey: "customSymbols")                 { customSymbols      = v }
+        if let v = d.object(forKey: "hotKeyCode")      as? Int { hotKeyCode      = v }
+        if let v = d.object(forKey: "hotKeyModifiers") as? Int { hotKeyModifiers = v }
         if let data = d.data(forKey: "passwordHistory"),
            let history = try? JSONDecoder().decode([String].self, from: data) {
             passwordHistory = history

@@ -86,6 +86,23 @@ struct AdvancedSettingsView: View {
 
             Divider()
 
+            // Global shortcut
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Global Shortcut")
+                        .font(.subheadline)
+                    Text("Generate & copy a password from anywhere")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                ShortcutRecorderView(keyCode: $settings.hotKeyCode, modifiers: $settings.hotKeyModifiers)
+                    .frame(width: 120, height: 28)
+            }
+            .padding(16)
+
+            Divider()
+
             // Footer
             HStack {
                 Button(role: .destructive) {
@@ -97,7 +114,7 @@ struct AdvancedSettingsView: View {
             }
             .padding(16)
         }
-        .frame(width: 420, height: 480)
+        .frame(width: 420, height: 540)
     }
 
     // MARK: - Row

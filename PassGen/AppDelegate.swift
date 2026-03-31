@@ -24,7 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupGlobalHotKey()
     }
 
-    // MARK: - Global hotkey (⇧⌘G) — generate & copy without opening PassGen
+    // MARK: - Global hotkey — generate & copy without opening PassGen
 
     private func setupGlobalHotKey() {
         // Request Accessibility access — prompts the user and adds app to the list
@@ -32,9 +32,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         AXIsProcessTrustedWithOptions(options)
 
         globalHotKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self else { return }
             let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            guard flags == [.command, .shift], event.keyCode == 26 else { return } // 26 = 7
-            DispatchQueue.main.async { self?.generateAndCopy() }
+            let targetMods = NSEvent.ModifierFlags(rawValue: UInt(self.settingsStore.hotKeyModifiers))
+            guard flags == targetMods, event.keyCode == UInt16(self.settingsStore.hotKeyCode) else { return }
+            DispatchQueue.main.async { self.generateAndCopy() }
         }
     }
 
@@ -78,7 +80,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.closePopover()
         }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 53 { self?.closePopover(); return nil }
+            if event.keyCode == 53 {
+                // Let the shortcut recorder handle Escape itself (cancels recording)
+                if NSApp.keyWindow?.firstResponder is ShortcutRecorderNSView { return event }
+                self?.closePopover()
+                return nil
+            }
             return event
         }
     }
@@ -93,8 +100,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showContextMenu() {
         let menu = NSMenu()
-        let generateItem = NSMenuItem(title: "Generate & Copy New Password", action: #selector(generateAndCopy), keyEquivalent: "7")
-        generateItem.keyEquivalentModifierMask = [.command, .shift]
+        let keyChar = ShortcutRecorderNSView.keyString(for: UInt16(settingsStore.hotKeyCode))
+        let keyEquiv = keyChar == "?" ? "" : keyChar.lowercased()
+        let mods = NSEvent.ModifierFlags(rawValue: UInt(settingsStore.hotKeyModifiers))
+        let generateItem = NSMenuItem(title: "Generate & Copy New Password", action: #selector(generateAndCopy), keyEquivalent: keyEquiv)
+        generateItem.keyEquivalentModifierMask = mods
         generateItem.target = self
         menu.addItem(generateItem)
         menu.addItem(NSMenuItem.separator())
