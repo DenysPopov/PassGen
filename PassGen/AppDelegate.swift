@@ -7,6 +7,7 @@
 
 import AppKit
 import SwiftUI
+import Combine
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
@@ -14,7 +15,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let settingsStore = SettingsStore()
     private var eventMonitor: Any?
     private var keyMonitor: Any?
-    private var globalHotKeyMonitor: Any?
+    private var cancellables = Set<AnyCancellable>()
+    private var isGenerating = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -27,17 +29,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Global hotkey — generate & copy without opening PassGen
 
     private func setupGlobalHotKey() {
-        // Request Accessibility access — prompts the user and adds app to the list
-        let options = [kAXTrustedCheckOptionPrompt.takeRetainedValue(): true] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
+        settingsStore.$hotKeyCode
+            .combineLatest(settingsStore.$hotKeyModifiers)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] (keyCode, modifiers) in
+                self?.registerHotKey(keyCode: keyCode, modifiers: modifiers)
+            }
+            .store(in: &cancellables)
+    }
 
-        globalHotKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self else { return }
-            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            let targetMods = NSEvent.ModifierFlags(rawValue: UInt(self.settingsStore.hotKeyModifiers))
-            guard flags == targetMods, event.keyCode == UInt16(self.settingsStore.hotKeyCode) else { return }
-            DispatchQueue.main.async { self.generateAndCopy() }
+    private func registerHotKey(keyCode: Int, modifiers: Int) {
+        let modFlags = NSEvent.ModifierFlags(rawValue: UInt(modifiers))
+        let success = GlobalHotKeyManager.shared.register(keyCode: UInt32(keyCode), modifiers: modFlags) { [weak self] in
+            self?.generateAndCopy()
         }
+        settingsStore.isHotKeyRegistered = success
     }
 
     // MARK: - Status item
@@ -67,7 +73,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func togglePopover(_ sender: NSStatusBarButton) {
         guard let event = NSApp.currentEvent else { return }
-        if event.type == .rightMouseUp { showContextMenu(); return }
+        
+        if event.type == .rightMouseUp {
+            if popover.isShown { closePopover() }
+            showContextMenu()
+            return
+        }
+        
         popover.isShown ? closePopover() : openPopover()
     }
 
@@ -77,13 +89,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover.contentViewController?.view.window?.makeKey()
 
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            self?.closePopover()
+            DispatchQueue.main.async { self?.closePopover() }
         }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 {
-                // Let the shortcut recorder handle Escape itself (cancels recording)
                 if NSApp.keyWindow?.firstResponder is ShortcutRecorderNSView { return event }
-                self?.closePopover()
+                DispatchQueue.main.async { self?.closePopover() }
                 return nil
             }
             return event
@@ -91,9 +102,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func closePopover() {
-        popover.performClose(nil)
         if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
         if let m = keyMonitor   { NSEvent.removeMonitor(m); keyMonitor   = nil }
+        popover.performClose(nil)
     }
 
     // MARK: - Context menu
@@ -103,27 +114,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let keyChar = ShortcutRecorderNSView.keyString(for: UInt16(settingsStore.hotKeyCode))
         let keyEquiv = keyChar == "?" ? "" : keyChar.lowercased()
         let mods = NSEvent.ModifierFlags(rawValue: UInt(settingsStore.hotKeyModifiers))
+        
         let generateItem = NSMenuItem(title: "Generate & Copy New Password", action: #selector(generateAndCopy), keyEquivalent: keyEquiv)
         generateItem.keyEquivalentModifierMask = mods
         generateItem.target = self
         menu.addItem(generateItem)
+        
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle: "Open PassGen", action: #selector(openPopoverFromMenu), keyEquivalent: "")
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle: "Quit PassGen", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-        statusItem.menu = menu
-        statusItem.button?.performClick(nil)
-        statusItem.menu = nil
+        
+        if let button = statusItem.button {
+            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height + 5), in: button)
+        }
     }
 
     @objc private func openPopoverFromMenu() { openPopover() }
 
     @objc func generateAndCopy() {
+        guard !isGenerating else { return }
+        isGenerating = true
         let pool = settingsStore.characterPool
         let length = Int(settingsStore.passwordLength)
-        guard let password = PasswordGenerator.generate(length: length, from: pool) else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(password, forType: .string)
-        settingsStore.addToHistory(password)
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self, let password = PasswordGenerator.generate(length: length, from: pool) else {
+                DispatchQueue.main.async { self?.isGenerating = false }
+                return
+            }
+            DispatchQueue.main.async {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(password, forType: .string)
+                self.settingsStore.addToHistory(password)
+                self.isGenerating = false
+            }
+        }
     }
 }

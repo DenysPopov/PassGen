@@ -35,6 +35,7 @@ class SettingsStore: ObservableObject {
     // Default: ⇧⌘7  (keyCode 26, modifiers = .command | .shift)
     @Published var hotKeyCode: Int      = 26        { didSet { save("hotKeyCode",      hotKeyCode)      } }
     @Published var hotKeyModifiers: Int = 1_179_648 { didSet { save("hotKeyModifiers", hotKeyModifiers) } }
+    @Published var isHotKeyRegistered: Bool = true
 
     @Published var passwordHistory: [String] = [] {
         didSet {

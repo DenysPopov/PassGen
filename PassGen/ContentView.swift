@@ -84,9 +84,19 @@ struct ContentView: View {
                         strengthIndicator
                     }
 
-                    // Warning
+                    // Warning: Pool Empty
                     if pool.isEmpty {
-                        warningBanner
+                        warningBanner(text: "Enable at least one character type")
+                    }
+                    
+                    // Warning: HotKey Conflict
+                    if !settings.isHotKeyRegistered {
+                        HStack {
+                            warningBanner(text: "Hotkey conflict", icon: "keyboard.badge.ellipsis")
+                            Button("Fix") { showAdvanced = true }
+                                .buttonStyle(.borderless)
+                                .font(.caption)
+                        }
                     }
 
                     Divider()
@@ -170,8 +180,8 @@ struct ContentView: View {
         min(entropy / 120.0, 1.0)
     }
 
-    private var warningBanner: some View {
-        Label("Enable at least one character type", systemImage: "exclamationmark.triangle.fill")
+    private func warningBanner(text: String, icon: String = "exclamationmark.triangle.fill") -> some View {
+        Label(text, systemImage: icon)
             .font(.caption)
             .foregroundStyle(.orange)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -208,7 +218,7 @@ struct ContentView: View {
             HStack(spacing: 0) {
                 // Offset to align with slider track (compensate for "Length" label and value label)
                 Text("").frame(width: 52)
-                ForEach(Array(tickLabels.enumerated()), id: \.offset) { i, label in
+                ForEach(Array(Self.tickLabels.enumerated()), id: \.offset) { i, label in
                     if i > 0 { Spacer() }
                     Text(label)
                         .font(.system(size: 9))
@@ -219,14 +229,14 @@ struct ContentView: View {
         }
     }
 
-    private var tickLabels: [String] {
+    private static let tickLabels: [String] = {
         let count = 7
         let min = 8.0, max = 128.0
         return (0..<count).map { i in
             let v = min + (max - min) * Double(i) / Double(count - 1)
             return "\(Int(v.rounded()))"
         }
-    }
+    }()
 
     private var actionButtons: some View {
         HStack(spacing: 10) {

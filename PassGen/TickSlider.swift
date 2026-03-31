@@ -26,7 +26,9 @@ struct TickSlider: NSViewRepresentable {
     }
 
     func updateNSView(_ slider: NSSlider, context: Context) {
-        slider.doubleValue = value
+        if slider.doubleValue != value {
+            slider.doubleValue = value
+        }
     }
 
     func makeCoordinator() -> Coordinator {
