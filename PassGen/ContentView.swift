@@ -89,13 +89,15 @@ struct ContentView: View {
                         warningBanner(text: "Enable at least one character type")
                     }
                     
-                    // Warning: HotKey Conflict
+                    // Warning: Accessibility not granted
                     if !settings.isHotKeyRegistered {
                         HStack {
-                            warningBanner(text: "Hotkey conflict", icon: "keyboard.badge.ellipsis")
-                            Button("Fix") { showAdvanced = true }
-                                .buttonStyle(.borderless)
-                                .font(.caption)
+                            warningBanner(text: "Global shortcut needs Accessibility access", icon: "keyboard.badge.ellipsis")
+                            Button("Fix") {
+                                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+                            }
+                            .buttonStyle(.borderless)
+                            .font(.caption)
                         }
                     }
 

@@ -15,6 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let settingsStore = SettingsStore()
     private var eventMonitor: Any?
     private var keyMonitor: Any?
+    private var globalHotKeyMonitor: Any?
     private var cancellables = Set<AnyCancellable>()
     private var isGenerating = false
 
@@ -29,21 +30,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Global hotkey — generate & copy without opening PassGen
 
     private func setupGlobalHotKey() {
+        // Prompt to add this app to Accessibility — required for global key monitoring.
+        let options = [kAXTrustedCheckOptionPrompt.takeRetainedValue(): true] as CFDictionary
+        AXIsProcessTrustedWithOptions(options)
+
+        // Re-register the monitor whenever the shortcut changes.
         settingsStore.$hotKeyCode
             .combineLatest(settingsStore.$hotKeyModifiers)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] (keyCode, modifiers) in
-                self?.registerHotKey(keyCode: keyCode, modifiers: modifiers)
-            }
+            .sink { [weak self] _ in self?.registerHotKey() }
             .store(in: &cancellables)
     }
 
-    private func registerHotKey(keyCode: Int, modifiers: Int) {
-        let modFlags = NSEvent.ModifierFlags(rawValue: UInt(modifiers))
-        let success = GlobalHotKeyManager.shared.register(keyCode: UInt32(keyCode), modifiers: modFlags) { [weak self] in
-            self?.generateAndCopy()
+    private func registerHotKey() {
+        if let m = globalHotKeyMonitor { NSEvent.removeMonitor(m); globalHotKeyMonitor = nil }
+        settingsStore.isHotKeyRegistered = AXIsProcessTrusted()
+
+        globalHotKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self else { return }
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            let targetMods = NSEvent.ModifierFlags(rawValue: UInt(self.settingsStore.hotKeyModifiers))
+            guard flags == targetMods, event.keyCode == UInt16(self.settingsStore.hotKeyCode) else { return }
+            DispatchQueue.main.async { self.generateAndCopy() }
         }
-        settingsStore.isHotKeyRegistered = success
     }
 
     // MARK: - Status item
