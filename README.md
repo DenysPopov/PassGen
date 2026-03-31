@@ -13,6 +13,7 @@ A lightweight macOS menu bar app for generating secure passwords.
 - **Advanced settings** — edit exactly which characters are included in each category
 - **Clipboard auto-clear** — clears the clipboard 45 seconds after copying
 - **Launch at login** — optional, configurable in settings
+- **Global hotkey** — press `⇧⌘7` anywhere to generate & copy without opening the app
 - **Right-click menu** — generate and copy a new password without opening the popover
 - **Keyboard shortcuts** — `⌘G` generate, `⌘C` copy, `⌘,` settings, `Esc` close
 
@@ -46,8 +47,12 @@ Click the **key icon** in the menu bar to open the password generator.
 | Toggle character types | Check/uncheck **Uppercase**, **Lowercase**, **Numbers**, **Symbols** |
 | Customize character sets | Click the gear icon → Advanced Settings |
 | View copy history | Click the clock icon |
-| Generate & copy silently | Right-click the menu bar icon → **Generate & Copy New Password** |
+| Generate & copy silently | Press `⇧⌘7` from anywhere, or right-click the menu bar icon |
 | Close popover | Click outside or press `Esc` |
+
+## Permissions
+
+The global hotkey (`⇧⌘7`) requires **Accessibility** permission. PassGen will prompt you on first launch — grant access in **System Settings → Privacy & Security → Accessibility**.
 
 ## License
 

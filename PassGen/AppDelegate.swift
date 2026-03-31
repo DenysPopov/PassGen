@@ -93,7 +93,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showContextMenu() {
         let menu = NSMenu()
-        let generateItem = NSMenuItem(title: "Generate & Copy New Password", action: #selector(generateAndCopy), keyEquivalent: "")
+        let generateItem = NSMenuItem(title: "Generate & Copy New Password", action: #selector(generateAndCopy), keyEquivalent: "7")
+        generateItem.keyEquivalentModifierMask = [.command, .shift]
         generateItem.target = self
         menu.addItem(generateItem)
         menu.addItem(NSMenuItem.separator())
