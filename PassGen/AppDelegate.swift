@@ -102,9 +102,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func closePopover() {
+        guard popover.isShown else { return }
         if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
         if let m = keyMonitor   { NSEvent.removeMonitor(m); keyMonitor   = nil }
-        popover.performClose(nil)
+        popover.close()
     }
 
     // MARK: - Context menu
