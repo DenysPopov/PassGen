@@ -6,11 +6,27 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		D3292C2C2F7BF2C300EEB710 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D3740ACB2F7BD38A00B279AD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3740AD22F7BD38A00B279AD;
+			remoteInfo = PassGen;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		D3292C282F7BF2C300EEB710 /* PassGenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PassGenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3740AD32F7BD38A00B279AD /* PassGen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PassGen.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		D3292C292F7BF2C300EEB710 /* PassGenTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PassGenTests;
+			sourceTree = "<group>";
+		};
 		D3740AD52F7BD38A00B279AD /* PassGen */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = PassGen;
@@ -19,6 +35,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		D3292C252F7BF2C300EEB710 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D3740AD02F7BD38A00B279AD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				D3740AD52F7BD38A00B279AD /* PassGen */,
+				D3292C292F7BF2C300EEB710 /* PassGenTests */,
 				D3740AD42F7BD38A00B279AD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				D3740AD32F7BD38A00B279AD /* PassGen.app */,
+				D3292C282F7BF2C300EEB710 /* PassGenTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +73,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		D3292C272F7BF2C300EEB710 /* PassGenTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3292C2E2F7BF2C300EEB710 /* Build configuration list for PBXNativeTarget "PassGenTests" */;
+			buildPhases = (
+				D3292C242F7BF2C300EEB710 /* Sources */,
+				D3292C252F7BF2C300EEB710 /* Frameworks */,
+				D3292C262F7BF2C300EEB710 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D3292C2D2F7BF2C300EEB710 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D3292C292F7BF2C300EEB710 /* PassGenTests */,
+			);
+			name = PassGenTests;
+			packageProductDependencies = (
+			);
+			productName = PassGenTests;
+			productReference = D3292C282F7BF2C300EEB710 /* PassGenTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		D3740AD22F7BD38A00B279AD /* PassGen */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D3740ADE2F7BD38A00B279AD /* Build configuration list for PBXNativeTarget "PassGen" */;
@@ -80,6 +128,10 @@
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
+					D3292C272F7BF2C300EEB710 = {
+						CreatedOnToolsVersion = 26.4;
+						TestTargetID = D3740AD22F7BD38A00B279AD;
+					};
 					D3740AD22F7BD38A00B279AD = {
 						CreatedOnToolsVersion = 26.4;
 					};
@@ -100,11 +152,19 @@
 			projectRoot = "";
 			targets = (
 				D3740AD22F7BD38A00B279AD /* PassGen */,
+				D3292C272F7BF2C300EEB710 /* PassGenTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		D3292C262F7BF2C300EEB710 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D3740AD12F7BD38A00B279AD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,6 +175,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		D3292C242F7BF2C300EEB710 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D3740ACF2F7BD38A00B279AD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,7 +191,53 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		D3292C2D2F7BF2C300EEB710 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3740AD22F7BD38A00B279AD /* PassGen */;
+			targetProxy = D3292C2C2F7BF2C300EEB710 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		D3292C2F2F7BF2C300EEB710 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = denyspopov.PassGenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PassGen.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PassGen";
+			};
+			name = Debug;
+		};
+		D3292C302F7BF2C300EEB710 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = denyspopov.PassGenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PassGen.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PassGen";
+			};
+			name = Release;
+		};
 		D3740ADC2F7BD38A00B279AD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -306,6 +419,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		D3292C2E2F7BF2C300EEB710 /* Build configuration list for PBXNativeTarget "PassGenTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3292C2F2F7BF2C300EEB710 /* Debug */,
+				D3292C302F7BF2C300EEB710 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		D3740ACE2F7BD38A00B279AD /* Build configuration list for PBXProject "PassGen" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

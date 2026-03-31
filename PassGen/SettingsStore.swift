@@ -8,7 +8,19 @@
 import Combine
 import Foundation
 
+// Thin protocol so tests can inject an in-memory store instead of UserDefaults.
+protocol UserDefaultsProtocol {
+    func object(forKey key: String) -> Any?
+    func string(forKey key: String) -> String?
+    func data(forKey key: String) -> Data?
+    func set(_ value: Any?, forKey key: String)
+}
+
+extension UserDefaults: UserDefaultsProtocol {}
+
 class SettingsStore: ObservableObject {
+    private let defaults: UserDefaultsProtocol
+
     @Published var isUppercaseEnabled: Bool = true { didSet { save("isUppercaseEnabled", isUppercaseEnabled) } }
     @Published var isLowercaseEnabled: Bool = true { didSet { save("isLowercaseEnabled", isLowercaseEnabled) } }
     @Published var isNumbersEnabled:   Bool = true { didSet { save("isNumbersEnabled",   isNumbersEnabled)   } }
@@ -23,13 +35,14 @@ class SettingsStore: ObservableObject {
     @Published var passwordHistory: [String] = [] {
         didSet {
             if let data = try? JSONEncoder().encode(passwordHistory) {
-                UserDefaults.standard.set(data, forKey: "passwordHistory")
+                defaults.set(data, forKey: "passwordHistory")
             }
         }
     }
 
-    init() {
-        let d = UserDefaults.standard
+    init(defaults: UserDefaultsProtocol = UserDefaults.standard) {
+        self.defaults = defaults
+        let d = defaults
         if let v = d.object(forKey: "isUppercaseEnabled") as? Bool   { isUppercaseEnabled = v }
         if let v = d.object(forKey: "isLowercaseEnabled") as? Bool   { isLowercaseEnabled = v }
         if let v = d.object(forKey: "isNumbersEnabled")   as? Bool   { isNumbersEnabled   = v }
@@ -47,7 +60,7 @@ class SettingsStore: ObservableObject {
 
     func addToHistory(_ password: String) {
         var h = passwordHistory
-        h.removeAll { $0 == password }   // avoid duplicates
+        h.removeAll { $0 == password }
         h.insert(password, at: 0)
         passwordHistory = Array(h.prefix(10))
     }
@@ -66,6 +79,6 @@ class SettingsStore: ObservableObject {
     }
 
     private func save(_ key: String, _ value: some Any) {
-        UserDefaults.standard.set(value, forKey: key)
+        defaults.set(value, forKey: key)
     }
 }
