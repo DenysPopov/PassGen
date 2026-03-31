@@ -16,6 +16,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var eventMonitor: Any?
     private var keyMonitor: Any?
     private var globalHotKeyMonitor: Any?
+    private var accessibilityTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     private var isGenerating = false
 
@@ -44,7 +45,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func registerHotKey() {
         if let m = globalHotKeyMonitor { NSEvent.removeMonitor(m); globalHotKeyMonitor = nil }
-        settingsStore.isHotKeyRegistered = AXIsProcessTrusted()
+
+        guard AXIsProcessTrusted() else {
+            settingsStore.isHotKeyRegistered = false
+            startAccessibilityPolling()
+            return
+        }
+
+        settingsStore.isHotKeyRegistered = true
+        accessibilityTimer?.invalidate()
+        accessibilityTimer = nil
 
         globalHotKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return }
@@ -52,6 +62,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let targetMods = NSEvent.ModifierFlags(rawValue: UInt(self.settingsStore.hotKeyModifiers))
             guard flags == targetMods, event.keyCode == UInt16(self.settingsStore.hotKeyCode) else { return }
             DispatchQueue.main.async { self.generateAndCopy() }
+        }
+    }
+
+    private func startAccessibilityPolling() {
+        guard accessibilityTimer == nil else { return }
+        accessibilityTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self, AXIsProcessTrusted() else { return }
+            self.registerHotKey()
         }
     }
 
