@@ -14,14 +14,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let settingsStore = SettingsStore()
     private var eventMonitor: Any?
     private var keyMonitor: Any?
+    private var globalHotKeyMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        // Close any windows SwiftUI might auto-open (e.g. Settings scene)
         NSApp.windows.forEach { $0.close() }
         setupStatusItem()
         setupPopover()
+        setupGlobalHotKey()
     }
+
+    // MARK: - Global hotkey (⇧⌘G) — generate & copy without opening PassGen
+
+    private func setupGlobalHotKey() {
+        // Request Accessibility access — prompts the user and adds app to the list
+        let options = [kAXTrustedCheckOptionPrompt.takeRetainedValue(): true] as CFDictionary
+        AXIsProcessTrustedWithOptions(options)
+
+        globalHotKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            guard flags == [.command, .shift], event.keyCode == 26 else { return } // 26 = 7
+            DispatchQueue.main.async { self?.generateAndCopy() }
+        }
+    }
+
+    // MARK: - Status item
 
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -35,6 +52,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    // MARK: - Popover
+
     private func setupPopover() {
         popover = NSPopover()
         popover.contentSize = NSSize(width: 320, height: 420)
@@ -46,17 +65,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func togglePopover(_ sender: NSStatusBarButton) {
         guard let event = NSApp.currentEvent else { return }
-
-        if event.type == .rightMouseUp {
-            showContextMenu()
-            return
-        }
-
-        if popover.isShown {
-            closePopover()
-        } else {
-            openPopover()
-        }
+        if event.type == .rightMouseUp { showContextMenu(); return }
+        popover.isShown ? closePopover() : openPopover()
     }
 
     private func openPopover() {
@@ -64,50 +74,40 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
 
-        // Close on outside click
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             self?.closePopover()
         }
-
-        // Close on Escape
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 53 { // Escape
-                self?.closePopover()
-                return nil
-            }
+            if event.keyCode == 53 { self?.closePopover(); return nil }
             return event
         }
     }
 
     private func closePopover() {
         popover.performClose(nil)
-        if let monitor = eventMonitor { NSEvent.removeMonitor(monitor); eventMonitor = nil }
-        if let monitor = keyMonitor   { NSEvent.removeMonitor(monitor); keyMonitor   = nil }
+        if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
+        if let m = keyMonitor   { NSEvent.removeMonitor(m); keyMonitor   = nil }
     }
+
+    // MARK: - Context menu
 
     private func showContextMenu() {
         let menu = NSMenu()
-
         let generateItem = NSMenuItem(title: "Generate & Copy New Password", action: #selector(generateAndCopy), keyEquivalent: "")
         generateItem.target = self
         menu.addItem(generateItem)
-
         menu.addItem(NSMenuItem.separator())
-
         menu.addItem(withTitle: "Open PassGen", action: #selector(openPopoverFromMenu), keyEquivalent: "")
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle: "Quit PassGen", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-
         statusItem.menu = menu
         statusItem.button?.performClick(nil)
         statusItem.menu = nil
     }
 
-    @objc private func openPopoverFromMenu() {
-        openPopover()
-    }
+    @objc private func openPopoverFromMenu() { openPopover() }
 
-    @objc private func generateAndCopy() {
+    @objc func generateAndCopy() {
         let pool = settingsStore.characterPool
         let length = Int(settingsStore.passwordLength)
         guard let password = PasswordGenerator.generate(length: length, from: pool) else { return }

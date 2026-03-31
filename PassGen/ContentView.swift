@@ -196,13 +196,35 @@ struct ContentView: View {
     }
 
     private var lengthSlider: some View {
-        HStack {
-            Text("Length")
-                .foregroundStyle(.secondary)
-            Slider(value: $settings.passwordLength, in: 8...128, step: 1)
-            Text("\(length)")
-                .monospacedDigit()
-                .frame(minWidth: 28, alignment: .trailing)
+        VStack(spacing: 2) {
+            HStack {
+                Text("Length")
+                    .foregroundStyle(.secondary)
+                TickSlider(value: $settings.passwordLength, range: 8...128)
+                Text("\(length)")
+                    .monospacedDigit()
+                    .frame(minWidth: 28, alignment: .trailing)
+            }
+            HStack(spacing: 0) {
+                // Offset to align with slider track (compensate for "Length" label and value label)
+                Text("").frame(width: 52)
+                ForEach(Array(tickLabels.enumerated()), id: \.offset) { i, label in
+                    if i > 0 { Spacer() }
+                    Text(label)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                }
+                Text("").frame(width: 40)
+            }
+        }
+    }
+
+    private var tickLabels: [String] {
+        let count = 7
+        let min = 8.0, max = 128.0
+        return (0..<count).map { i in
+            let v = min + (max - min) * Double(i) / Double(count - 1)
+            return "\(Int(v.rounded()))"
         }
     }
 
