@@ -111,6 +111,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func openPopover() {
+        removeEventMonitors() // clear any stale monitors before adding new ones
         guard let button = statusItem.button else { return }
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
@@ -129,10 +130,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func closePopover() {
+        removeEventMonitors() // always remove monitors, even if popover.isShown is stale
         guard popover.isShown else { return }
+        popover.close()
+    }
+
+    private func removeEventMonitors() {
         if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
         if let m = keyMonitor   { NSEvent.removeMonitor(m); keyMonitor   = nil }
-        popover.close()
     }
 
     // MARK: - Context menu
