@@ -18,8 +18,8 @@ A lightweight macOS menu bar app for generating secure passwords.
 
 ## Requirements
 
-- macOS 13 Ventura or later
-- Xcode 15 or later (to build from source)
+- macOS 26.4 or later
+- Xcode 26.4 or later (to build from source)
 
 ## Installation
 
