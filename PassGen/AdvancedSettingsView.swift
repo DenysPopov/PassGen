@@ -10,7 +10,7 @@ import SwiftUI
 
 struct AdvancedSettingsView: View {
     @EnvironmentObject var settings: SettingsStore
-    @Environment(\.dismiss) private var dismiss
+    var onBack: () -> Void
 
     @State private var launchAtLogin: Bool = (SMAppService.mainApp.status == .enabled)
 
@@ -25,11 +25,26 @@ struct AdvancedSettingsView: View {
         VStack(spacing: 0) {
             // Toolbar
             HStack {
-                Text("Advanced Settings")
-                    .font(.headline)
+                Button {
+                    onBack()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.accentColor)
+
                 Spacer()
-                Button("Done") { dismiss() }
-                    .keyboardShortcut(.defaultAction)
+
+                Text("Settings")
+                    .font(.headline)
+
+                Spacer()
+
+                // Balance the Back button width
+                Text("Back").opacity(0)
             }
             .padding(16)
 
@@ -114,7 +129,6 @@ struct AdvancedSettingsView: View {
             }
             .padding(16)
         }
-        .frame(width: 420, height: 540)
     }
 
     // MARK: - Row
@@ -178,6 +192,6 @@ struct AdvancedSettingsView: View {
 }
 
 #Preview {
-    AdvancedSettingsView()
+    AdvancedSettingsView(onBack: {})
         .environmentObject(SettingsStore())
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HistoryView: View {
     @EnvironmentObject var settings: SettingsStore
-    @Environment(\.dismiss) private var dismiss
+    var onBack: () -> Void
     @State private var copiedIndex: Int? = nil
 
     var body: some View {
@@ -17,7 +17,7 @@ struct HistoryView: View {
             // Toolbar
             HStack {
                 Button {
-                    dismiss()
+                    onBack()
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
@@ -56,32 +56,47 @@ struct HistoryView: View {
             } else {
                 List {
                     ForEach(Array(settings.passwordHistory.enumerated()), id: \.offset) { index, entry in
-                        HStack(spacing: 8) {
-                            Text(entry)
-                                .font(.system(.body, design: .monospaced))
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Button {
-                                copyEntry(entry, index: index)
-                            } label: {
-                                Image(systemName: copiedIndex == index ? "checkmark" : "doc.on.doc")
-                                    .foregroundStyle(copiedIndex == index ? .green : .secondary)
-                                    .frame(width: 16, height: 16)
-                            }
-                            .buttonStyle(.plain)
-                            .help("Copy")
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture { copyEntry(entry, index: index) }
+                        HistoryRow(
+                            entry: entry,
+                            isCopied: copiedIndex == index,
+                            onCopy: { copyEntry(entry, index: index) }
+                        )
                     }
                 }
             }
         }
-        .frame(width: 420, height: 480)
     }
 
+}
+
+private struct HistoryRow: View {
+    let entry: String
+    let isCopied: Bool
+    let onCopy: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(entry)
+                .font(.system(.body, design: .monospaced))
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                .foregroundStyle(isCopied ? .green : (isHovered ? Color.primary : .secondary))
+                .frame(width: 16, height: 16)
+        }
+        .padding(.vertical, 2)
+        .contentShape(Rectangle())
+        .background(isHovered ? Color(nsColor: .selectedContentBackgroundColor).opacity(0.15) : .clear)
+        .onHover { isHovered = $0 }
+        .onTapGesture { onCopy() }
+        .help("Click to copy")
+    }
+}
+
+extension HistoryView {
     private func copyEntry(_ entry: String, index: Int) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(entry, forType: .string)
@@ -93,6 +108,6 @@ struct HistoryView: View {
 }
 
 #Preview {
-    HistoryView()
+    HistoryView(onBack: {})
         .environmentObject(SettingsStore())
 }

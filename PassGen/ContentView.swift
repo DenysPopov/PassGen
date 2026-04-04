@@ -7,15 +7,15 @@
 
 import SwiftUI
 
+private enum Page { case main, history, settings }
+
 struct ContentView: View {
     @EnvironmentObject var settings: SettingsStore
 
     @State private var password: String = ""
     @State private var isCopied: Bool = false
-    @State private var showAdvanced: Bool = false
-    @State private var showHistory: Bool = false
+    @State private var currentPage: Page = .main
     @State private var clearClipboardTask: DispatchWorkItem?
-
 
     // MARK: - Derived
 
@@ -47,20 +47,33 @@ struct ContentView: View {
     // MARK: - Body
 
     var body: some View {
+        switch currentPage {
+        case .main:
+            mainView
+        case .history:
+            HistoryView(onBack: { currentPage = .main })
+        case .settings:
+            AdvancedSettingsView(onBack: { currentPage = .main })
+        }
+    }
+
+    // MARK: - Main view
+
+    private var mainView: some View {
         VStack(spacing: 0) {
             // Header
             HStack {
                 Text("PassGen")
                     .font(.headline)
                 Spacer()
-                Button { showHistory = true } label: {
+                Button { currentPage = .history } label: {
                     Image(systemName: "clock")
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
                 .help("Password History")
 
-                Button { showAdvanced = true } label: {
+                Button { currentPage = .settings } label: {
                     Image(systemName: "gearshape")
                         .foregroundStyle(.secondary)
                 }
@@ -88,7 +101,7 @@ struct ContentView: View {
                     if pool.isEmpty {
                         warningBanner(text: "Enable at least one character type")
                     }
-                    
+
                     // Warning: Accessibility not granted
                     if !settings.isHotKeyRegistered {
                         HStack {
@@ -113,24 +126,13 @@ struct ContentView: View {
 
                     // Buttons
                     actionButtons
-
-
                 }
                 .padding(16)
             }
         }
-        .frame(width: 320)
         .onAppear { generate() }
-        .onChange(of: settings.characterPool)    { _, _ in generate() }
-        .onChange(of: settings.passwordLength)   { _, _ in generate() }
-        .sheet(isPresented: $showAdvanced) {
-            AdvancedSettingsView()
-                .environmentObject(settings)
-        }
-        .sheet(isPresented: $showHistory) {
-            HistoryView()
-                .environmentObject(settings)
-        }
+        .onChange(of: settings.characterPool)  { _, _ in generate() }
+        .onChange(of: settings.passwordLength) { _, _ in generate() }
     }
 
     // MARK: - Subviews
